@@ -10,7 +10,7 @@ void WINAPI _flusher(LPVOID data, DWORD high, DWORD low)
         {
             FILETIME now;
             GetSystemTimeAsFileTime(&now);
-            if (now.dwLowDateTime - LastFlush.dwLowDateTime >= 50'000'000L && Buffer[0] != 0x00)
+            if (now.dwLowDateTime - LastFlush.dwLowDateTime >= REFRESHTIME * 10'000'000L && Buffer[0] != 0x00)
             {
                 memcpy(&LastFlush, &now, sizeof(FILETIME));
                 flush();
@@ -29,6 +29,7 @@ void WINAPI _flusher(LPVOID data, DWORD high, DWORD low)
 
 DWORD WINAPI handleTimer()
 {
+    // Creating The Timer.
     HANDLE timer = CreateWaitableTimer(NULL, FALSE, NULL);
     if (timer == NULL)
     {
@@ -38,9 +39,9 @@ DWORD WINAPI handleTimer()
         return -1;
     }
 
+    // Starting the timer immediately
     LARGE_INTEGER dueTime;
     ZeroMemory(&dueTime, sizeof(LARGE_INTEGER));
-
     if (!SetWaitableTimer(timer, &dueTime, 1000, _flusher, NULL, 0))
     {
 #ifdef DEBUG
@@ -49,6 +50,7 @@ DWORD WINAPI handleTimer()
         return -1;
     }
 
+    // Looping over SleepEx, so timer can wakeup asynchronously every second
     while (TRUE)
         SleepEx(INFINITE, TRUE);
 }

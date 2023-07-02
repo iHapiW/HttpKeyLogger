@@ -14,6 +14,10 @@ DWORD Buffer[BUFFSIZE];
 FILETIME LastFlush;
 DWORD Index;
 
+// store's `repr`s size in `size` ( including NULL char ). repr can be NULL ( to get `size` then alloc ) or a buffer containing at least `size` bytes.
+void getStrRepr(char* repr, size_t* size);
+
+// Push Buffer to Somewhere and Make Buffer Empty
 void flush();
 
 #ifdef DEBUG
