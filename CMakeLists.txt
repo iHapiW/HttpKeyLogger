@@ -50,7 +50,7 @@ file(GLOB include
 
 # Create executable
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    add_executable(${EXENAME} ${src} ${include} )
+    add_executable(${EXENAME} ${src} ${include}  "src/connection.c")
 elseif(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
     add_executable(${EXENAME} ${src} ${include})
 else()

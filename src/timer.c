@@ -29,28 +29,34 @@ void WINAPI _flusher(LPVOID data, DWORD high, DWORD low)
 
 DWORD WINAPI handleTimer()
 {
-    // Creating The Timer.
-    HANDLE timer = CreateWaitableTimer(NULL, FALSE, NULL);
-    if (timer == NULL)
-    {
-#ifdef DEBUG
-        handleError("CreateWaitableTimer");
-#endif
-        return -1;
-    }
-
-    // Starting the timer immediately
-    LARGE_INTEGER dueTime;
-    ZeroMemory(&dueTime, sizeof(LARGE_INTEGER));
-    if (!SetWaitableTimer(timer, &dueTime, 1000, _flusher, NULL, 0))
-    {
-#ifdef DEBUG
-        handleError("SetWaitableTimer");
-#endif
-        return -1;
-    }
-
-    // Looping over SleepEx, so timer can wakeup asynchronously every second
     while (TRUE)
-        SleepEx(INFINITE, TRUE);
+    {
+        // Creating The Timer.
+        HANDLE timer = CreateWaitableTimer(NULL, FALSE, NULL);
+        if (timer == NULL)
+        {
+#ifdef DEBUG
+            handleError("CreateWaitableTimer");
+#endif
+            continue;
+        }
+
+        // Starting the timer immediately
+        LARGE_INTEGER dueTime;
+        ZeroMemory(&dueTime, sizeof(LARGE_INTEGER));
+        if (!SetWaitableTimer(timer, &dueTime, 1000, _flusher, NULL, 0))
+        {
+#ifdef DEBUG
+            handleError("SetWaitableTimer");
+#endif
+            CancelWaitableTimer(timer);
+            CloseHandle(timer);
+            continue;
+        }
+
+        // Looping over SleepEx, so timer can wakeup asynchronously every second
+        while (SleepEx(INFINITE, TRUE)) {};
+
+        break;
+    }
 }

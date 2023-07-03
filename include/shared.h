@@ -7,6 +7,8 @@
 
 #include "Windows.h"
 
+#include "connection.h"
+
 #define BUFFSIZE 16
 
 HANDLE Mutex;
