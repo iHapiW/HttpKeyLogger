@@ -1,6 +1,6 @@
 #include "shared.h"
 
-void getStrRepr(char* repr, size_t* size)
+void getStrRepr(char* repr, DWORD* size)
 {
     if(size != NULL)
         *size = 0;
@@ -12,7 +12,7 @@ void getStrRepr(char* repr, size_t* size)
             break;
 
         char* key = NULL;
-        size_t keySize = 1;
+        DWORD keySize = 1;
         char helper[2] = { 0 };
 
         switch ( (unsigned char) Buffer[i])
@@ -736,7 +736,7 @@ void getStrRepr(char* repr, size_t* size)
 // Flushing function, basically pushing data to somewhere and empty the Buffer.
 void flush()
 {
-    size_t size;
+    DWORD size;
     getStrRepr(NULL, &size);
     if (!size)
         return;

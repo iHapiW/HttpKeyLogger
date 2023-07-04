@@ -18,8 +18,10 @@ void WINAPI _flusher(LPVOID data, DWORD high, DWORD low)
         }
         __finally
         {
-            if (!ReleaseMutex(Mutex))
+
+            BOOL err = ReleaseMutex(Mutex);
 #ifdef DEBUG
+            if (!err)
                 handleError("ReleaseMutex");
 #endif
         }
@@ -59,4 +61,5 @@ DWORD WINAPI handleTimer()
 
         break;
     }
+    return 0;
 }

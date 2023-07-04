@@ -131,8 +131,9 @@ LRESULT CALLBACK _hookHandler(int nCode, WPARAM wParam, LPARAM lParam)
             __finally
             {
                 // Release Mutex, so timer can start checking
-                if (!ReleaseMutex(Mutex))
+                BOOL err = ReleaseMutex(Mutex);
 #ifdef DEBUG
+                if (!err)
                     handleError("ReleaseMutex");
 #endif
             }
